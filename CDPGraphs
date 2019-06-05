@@ -1,0 +1,116 @@
+
+import matplotlib.pyplot as plt
+import csv
+import numpy as np
+import pandas as pd
+
+###MAIN DATA AND CONSTANTS###
+
+data = []
+with open('Timings.txt') as file:
+    for row in file:
+        data.append(float(row))
+    
+bins = [x/(1*10**9) for x in range(50)] #0 to 50 nanoseconds
+counts, times, patches = plt.hist(data, bins)
+
+###DEFINITIONS###
+
+# pulserate = pi in paper 
+def pulserate(box):
+    rate = counts[box]/(sum(counts)*times[box+1]-times[box])
+    return(rate)
+
+# Uncertainty of pi
+def uPulserate(box):
+    error = np.sqrt(counts[box])/(sum(counts)*times[box+1]-times[box])
+    return(error)
+
+# average #pulses occuring in box = lambda in paper?
+def lamb(box):
+#    prob = pulserate(box)*(times[box+1]-times[box])
+    prob = counts[box]/(sum(counts))
+    return(prob)
+    
+# Uncertainty of Pi = Uncertainty of Lambda
+def uLamb(box):
+    None
+#    error = np.sqrt(np.square())
+    
+# Beta is average # pulses happening before time ***box
+def beta(box):
+    rsf = 0 
+    if box == 0:
+        return(rsf)
+    else:
+        rsf = rsf + lamb(box-1)
+        rsf = rsf + beta(box-1)
+        return(rsf)
+
+# Uncertainty for Beta calculation
+def uBeta(box):
+    None
+
+# Lambda is average # pulses occuring in time frame ***box-box+1
+def pulseProbability(box):
+    prob = np.exp(-1*beta(box))*(1 - np.exp(-1*lamb(box)))
+    return(prob)
+
+###PLOTS###
+
+# HISTOGRAM OF TIMING OF SECONDARY PULSES
+plt.hist(data, bins, color='c')
+plt.ylabel('Counts')
+plt.xlabel('Time (s)')
+plt.title('Timing Distribution of Secondary Pulses in SiPM')
+#plt.plot(bins[0:-1], counts, color='r') #Line overlay if wanted
+plt.show()
+
+# =============================================================================
+# #Integrated first 10 ns
+# int_bins = [(x/(1*10**9))+11*10**-8 for x in range(50)]
+# more_bins = [10**-8] + int_bins
+# plt.hist(data, more_bins)
+# plt.show()
+# 
+# plt.hist(data, more_bins)
+# plt.show()
+# 
+# =============================================================================
+
+# SCATTER AND LINE OVERLAY PLOT OF ABOVE
+# Use bins[0:-1] instead of times since counts is 1 less than times
+plt.plot(bins[0:-1], counts)
+plt.scatter(bins[0:-1], counts)
+plt.ylabel('Counts')
+plt.xlabel('Time (s)')
+plt.title('Timing of Secondary Pulses in SiPM')
+plt.show()
+
+# Plot of the pulserate vs time
+plt.plot(bins[0:-1], [pulserate(x) for x in range(len(bins)-1)])
+plt.ylabel('Pulserate (counts/sec)')
+plt.xlabel('Time (sec)')
+plt.title('Pulserate vs. Time')
+plt.show()
+    
+# Plot of the lambda vs time
+plt.plot(bins[0:-1], [lamb(x) for x in range(len(bins)-1)])
+plt.ylabel('Lambda')
+plt.xlabel('Time (sec)')
+plt.title('Lambda vs. Time')
+plt.show()
+
+# Plot of the beta vs time
+plt.plot(bins[0:-1], [beta(x) for x in range(len(bins)-1)])
+plt.ylabel('Beta')
+plt.xlabel('Time (sec)')
+plt.title('Beta vs. Time')
+plt.show()
+    
+# Plot of the pulseProb vs time
+plt.plot(bins[0:-1], [pulseProbability(x) for x in range(len(bins)-1)])
+plt.ylabel('Pulse Probability')
+plt.xlabel('Time (sec)')
+plt.title('Pulse Probability vs. Time')
+plt.show()
