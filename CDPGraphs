@@ -66,18 +66,6 @@ plt.title('Timing Distribution of Secondary Pulses in SiPM')
 #plt.plot(bins[0:-1], counts, color='r') #Line overlay if wanted
 plt.show()
 
-# =============================================================================
-# #Integrated first 10 ns
-# int_bins = [(x/(1*10**9))+11*10**-8 for x in range(50)]
-# more_bins = [10**-8] + int_bins
-# plt.hist(data, more_bins)
-# plt.show()
-# 
-# plt.hist(data, more_bins)
-# plt.show()
-# 
-# =============================================================================
-
 # SCATTER AND LINE OVERLAY PLOT OF ABOVE
 # Use bins[0:-1] instead of times since counts is 1 less than times
 plt.plot(bins[0:-1], counts)
