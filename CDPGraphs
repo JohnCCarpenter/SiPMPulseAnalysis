@@ -1,8 +1,5 @@
-
 import matplotlib.pyplot as plt
-import csv
 import numpy as np
-import pandas as pd
 
 ###MAIN DATA AND CONSTANTS###
 
@@ -26,7 +23,7 @@ def uPulserate(box):
     error = np.sqrt(counts[box])/(sum(counts)*times[box+1]-times[box])
     return(error)
 
-# average #pulses occuring in box = lambda in paper?
+# average # of pulses occuring in box = lambda in paper?
 def lamb(box):
 #    prob = pulserate(box)*(times[box+1]-times[box])
     prob = counts[box]/(sum(counts))
@@ -51,7 +48,7 @@ def beta(box):
 def uBeta(box):
     None
 
-# Lambda is average # pulses occuring in time frame ***box-box+1
+# Lambda is average # of pulses occuring in time frame ***box-box+1
 def pulseProbability(box):
     prob = np.exp(-1*beta(box))*(1 - np.exp(-1*lamb(box)))
     return(prob)
