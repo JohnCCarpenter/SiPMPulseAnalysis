@@ -8,7 +8,27 @@ with open('Timings.txt') as file:
     for row in file:
         data.append(float(row))
     
-bins = [x/(1*10**9) for x in range(50)] #0 to 50 nanoseconds
+#This next section is to create a list of 1e-9 to 1e-2 in steps of 1e-9?
+#DOESN'T WORK BECAUSE THE BIN SIZES GET LARGER AT EVERY ORDER OF MAGNITUDE
+start_bins = [0.0000000001, 0.000000001, 0.00000001, 0.0000001, 
+              0.000001, 0.00001, 0.0001, 0.001, 0.01]
+
+#returns list multiplied by a number(n)
+def stepBin(n):
+    next_bins = [x*n for x in start_bins]
+    return(next_bins)
+    
+#create a list of lists, each a multiple of start_bins
+next_bins = [stepBin(x) for x in range(1, 10)]
+
+#combine all list elements into single list
+last_bins = []
+for x in next_bins:
+    last_bins += x 
+    
+#sort all list elements to be used in histogram
+bins = sorted(last_bins)
+
 counts, times, patches = plt.hist(data, bins)
 
 ###DEFINITIONS###
@@ -55,11 +75,15 @@ def pulseProbability(box):
 
 ###PLOTS###
 
+
 # HISTOGRAM OF TIMING OF SECONDARY PULSES
 plt.hist(data, bins, color='c')
 plt.ylabel('Counts')
 plt.xlabel('Time (s)')
 plt.title('Timing Distribution of Secondary Pulses in SiPM')
+plt.yscale('log')
+plt.xscale('log')
+plt.grid(linestyle='--')
 #plt.plot(bins[0:-1], counts, color='r') #Line overlay if wanted
 plt.show()
 
@@ -69,7 +93,10 @@ plt.plot(bins[0:-1], counts)
 plt.scatter(bins[0:-1], counts)
 plt.ylabel('Counts')
 plt.xlabel('Time (s)')
+plt.yscale('log')
+plt.xscale('log')
 plt.title('Timing of Secondary Pulses in SiPM')
+plt.grid(True)
 plt.show()
 
 # Plot of the pulserate vs time
@@ -77,6 +104,8 @@ plt.plot(bins[0:-1], [pulserate(x) for x in range(len(bins)-1)])
 plt.ylabel('Pulserate (counts/sec)')
 plt.xlabel('Time (sec)')
 plt.title('Pulserate vs. Time')
+plt.yscale('log')
+plt.xscale('log')
 plt.show()
     
 # Plot of the lambda vs time
@@ -84,6 +113,8 @@ plt.plot(bins[0:-1], [lamb(x) for x in range(len(bins)-1)])
 plt.ylabel('Lambda')
 plt.xlabel('Time (sec)')
 plt.title('Lambda vs. Time')
+plt.yscale('log')
+plt.xscale('log')
 plt.show()
 
 # Plot of the beta vs time
@@ -91,6 +122,8 @@ plt.plot(bins[0:-1], [beta(x) for x in range(len(bins)-1)])
 plt.ylabel('Beta')
 plt.xlabel('Time (sec)')
 plt.title('Beta vs. Time')
+plt.yscale('log')
+plt.xscale('log')
 plt.show()
     
 # Plot of the pulseProb vs time
@@ -98,4 +131,6 @@ plt.plot(bins[0:-1], [pulseProbability(x) for x in range(len(bins)-1)])
 plt.ylabel('Pulse Probability')
 plt.xlabel('Time (sec)')
 plt.title('Pulse Probability vs. Time')
+plt.yscale('log')
+plt.xscale('log')
 plt.show()
