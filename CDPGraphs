@@ -1,3 +1,4 @@
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -7,76 +8,98 @@ data = []
 with open('Timings.txt') as file:
     for row in file:
         data.append(float(row))
-    
-#This next section is to create a list of 1e-9 to 1e-2 in steps of 1e-9?
-#DOESN'T WORK BECAUSE THE BIN SIZES GET LARGER AT EVERY ORDER OF MAGNITUDE
-start_bins = [0.0000000001, 0.000000001, 0.00000001, 0.0000001, 
-              0.000001, 0.00001, 0.0001, 0.001, 0.01]
+        
+counts, times, patches = plt.hist(data, bins)   
 
-#returns list multiplied by a number(n)
-def stepBin(n):
-    next_bins = [x*n for x in start_bins]
-    return(next_bins)
-    
-#create a list of lists, each a multiple of start_bins
-next_bins = [stepBin(x) for x in range(1, 10)]
-
-#combine all list elements into single list
-last_bins = []
-for x in next_bins:
-    last_bins += x 
-    
-#sort all list elements to be used in histogram
-bins = sorted(last_bins)
-
-counts, times, patches = plt.hist(data, bins)
+###BINNING OPTIONS###
+bins = [x/(1*10**8) for x in range(100)] #range(n) gives n nanoseconds
+#bins = 10
+#bins = [x/(1*10**9) for x in range(1, 10000000, 10000)] #this allows for larger range?
+        
+# =============================================================================
+# #This next section is to create a list of 1e-9 to 1e-2 in steps of 1e-9
+# #DOESN'T WORK BECAUSE THE BIN SIZES GET LARGER AT EVERY ORDER OF MAGNITUDE
+# start_bins = [0.0000000001, 0.000000001, 0.00000001, 0.0000001, 
+#               0.000001, 0.00001, 0.0001, 0.001, 0.01]
+# 
+# #returns list multiplied by a number(n)
+# def stepBin(n):
+#     next_bins = [x*n for x in start_bins]
+#     return(next_bins)
+#     
+# #create a list of lists, each a multiple of start_bins
+# next_bins = [stepBin(x) for x in range(1, 10)]
+# 
+# #combine all list elements into single list
+# last_bins = []
+# for x in next_bins:
+#     last_bins += x 
+#     
+# #sort all list elements to be used in histogram
+# bins = sorted(last_bins)
+# =============================================================================                
 
 ###DEFINITIONS###
 
 # pulserate = pi in paper 
 def pulserate(box):
-    rate = counts[box]/(sum(counts)*times[box+1]-times[box])
+    rate = counts[box]/(sum(counts)*(times[box+1]-times[box]))
     return(rate)
 
 # Uncertainty of pi
 def uPulserate(box):
-    error = np.sqrt(counts[box])/(sum(counts)*times[box+1]-times[box])
+    error = np.sqrt(counts[box])/(sum(counts)*(times[box+1]-times[box]))
     return(error)
 
-# average # of pulses occuring in box = lambda in paper?
+# average # of pulses occuring in box = lambda in paper
 def lamb(box):
-#    prob = pulserate(box)*(times[box+1]-times[box])
+  #  prob = pulserate(box)*(times[box+1]-times[box])
     prob = counts[box]/(sum(counts))
     return(prob)
     
 # Uncertainty of Pi = Uncertainty of Lambda
 def uLamb(box):
-    None
-#    error = np.sqrt(np.square())
-    
-# Beta is average # pulses happening before time ***box
+    if box == 0:
+        error = 0
+    else:
+        error = np.sqrt(np.square(uPulseProb(box)) + \
+                    np.square(pulseProbability(box))*np.square(uBeta(box))) \
+                    /(np.exp(-1*beta(box-1)) - pulseProbability(box-1))
+    return(error)
+
+# Beta is average # pulses happening before time
 def beta(box):
     rsf = 0 
     if box == 0:
         return(rsf)
     else:
-        rsf = rsf + lamb(box-1)
-        rsf = rsf + beta(box-1)
+        rsf += lamb(box-1)
+        rsf += beta(box-1)
         return(rsf)
 
 # Uncertainty for Beta calculation
 def uBeta(box):
-    None
+    if box == 0:
+        error = 0
+    else:
+        error = np.sqrt(np.square(uPulseProb(box-1)) + \
+                    np.square(np.exp(-1*beta(box-1))*uBeta(box-1)))\
+                    /(np.exp(-1*beta(box-1)) - pulseProbability(box-1))
+    return(error)
 
-# Lambda is average # of pulses occuring in time frame ***box-box+1
+# Lambda is average # of pulses occuring in time frame
 def pulseProbability(box):
     prob = np.exp(-1*beta(box))*(1 - np.exp(-1*lamb(box)))
     return(prob)
 
+# Uncertainty in the pulseProb, this may be the wrong way to calculate!!!
+def uPulseProb(box):
+    error = uPulserate(box)*(times[box+1]-times[box])
+    return(error)
+    
 ###PLOTS###
 
-
-# HISTOGRAM OF TIMING OF SECONDARY PULSES
+# HISTOGRAM OF SECONDARY PULSE TIMING
 plt.hist(data, bins, color='c')
 plt.ylabel('Counts')
 plt.xlabel('Time (s)')
@@ -89,48 +112,66 @@ plt.show()
 
 # SCATTER AND LINE OVERLAY PLOT OF ABOVE
 # Use bins[0:-1] instead of times since counts is 1 less than times
-plt.plot(bins[0:-1], counts)
-plt.scatter(bins[0:-1], counts)
+plt.plot(bins[0:-1], counts, color='c')
+plt.scatter(bins[0:-1], counts, color='c')
 plt.ylabel('Counts')
 plt.xlabel('Time (s)')
 plt.yscale('log')
 plt.xscale('log')
 plt.title('Timing of Secondary Pulses in SiPM')
+#plt.errorbar(bins[0:-1], counts, barsabove=False,
+#             yerr=uPulserate(bins[0:-1]))
 plt.grid(True)
 plt.show()
 
 # Plot of the pulserate vs time
-plt.plot(bins[0:-1], [pulserate(x) for x in range(len(bins)-1)])
+pulserate_uncertainties = [uPulserate(x) for x in range(len(bins[0:-1]))]
+
+plt.plot(bins[0:-1], [pulserate(x) for x in range(len(bins)-1)], color='k',)
 plt.ylabel('Pulserate (counts/sec)')
 plt.xlabel('Time (sec)')
 plt.title('Pulserate vs. Time')
 plt.yscale('log')
 plt.xscale('log')
+plt.errorbar(bins[0:-1], [pulserate(x) for x in range(len(bins)-1)],
+             yerr=pulserate_uncertainties)
 plt.show()
     
 # Plot of the lambda vs time
+lambda_uncertainties = [uLamb(x) for x in range(len(bins[0:-1]))]
+
 plt.plot(bins[0:-1], [lamb(x) for x in range(len(bins)-1)])
 plt.ylabel('Lambda')
 plt.xlabel('Time (sec)')
 plt.title('Lambda vs. Time')
 plt.yscale('log')
 plt.xscale('log')
+plt.errorbar(bins[0:-1], [lamb(x) for x in range(len(bins)-1)],
+             yerr=lambda_uncertainties)
 plt.show()
 
 # Plot of the beta vs time
+beta_uncertainties = [uBeta(x) for x in range(len(bins[0:-1]))]
+
 plt.plot(bins[0:-1], [beta(x) for x in range(len(bins)-1)])
 plt.ylabel('Beta')
 plt.xlabel('Time (sec)')
 plt.title('Beta vs. Time')
 plt.yscale('log')
 plt.xscale('log')
+plt.errorbar(bins[0:-1], [beta(x) for x in range(len(bins)-1)],
+             yerr=beta_uncertainties)
 plt.show()
     
 # Plot of the pulseProb vs time
+pulse_prob_uncertainties = [uPulseProb(x) for x in range(len(bins[0:-1]))]
+
 plt.plot(bins[0:-1], [pulseProbability(x) for x in range(len(bins)-1)])
 plt.ylabel('Pulse Probability')
 plt.xlabel('Time (sec)')
 plt.title('Pulse Probability vs. Time')
 plt.yscale('log')
 plt.xscale('log')
+plt.errorbar(bins[0:-1], [pulseProbability(x) for x in range(len(bins)-1)],
+             yerr=pulse_prob_uncertainties)
 plt.show()
