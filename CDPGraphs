@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import csv
 
 ###MAIN DATA AND CONSTANTS###
 
@@ -8,12 +9,13 @@ bins = np.logspace(-9, -1, 100)
 
 data = []
 with open('Timings.txt') as file:
+    reader = csv.reader(file, delimiter=' ', quotechar='|')
     for row in file:
         data.append(float(row))
         
 counts, times, patches = plt.hist(data, bins)
 
-###FUNCTIONS###
+###DEFINITIONS###
 
 # pulserate = pi in paper 
 def pulserate(box):
