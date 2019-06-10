@@ -3,20 +3,12 @@ import numpy as np
 
 ###MAIN DATA AND CONSTANTS###
 
-data = []
-with open('Timings.txt') as file:
-    for row in file:
-        data.append(float(row))
-        
-counts, times, patches = plt.hist(data, bins)   
-
-###BINNING OPTIONS###
-bins = [x/(1*10**8) for x in range(100)] #range(n) gives n nanoseconds
+bins = [x/(1*10**8) for x in range(1000000)] #range(n) gives n*10 nanoseconds
 #bins = 10
 #bins = [x/(1*10**9) for x in range(1, 10000000, 10000)] #this allows for larger range?
         
+#This next section is to create a list of 1e-9 to 1e-2 in steps of 1e-9
 # =============================================================================
-# #This next section is to create a list of 1e-9 to 1e-2 in steps of 1e-9
 # #DOESN'T WORK BECAUSE THE BIN SIZES GET LARGER AT EVERY ORDER OF MAGNITUDE
 # start_bins = [0.0000000001, 0.000000001, 0.00000001, 0.0000001, 
 #               0.000001, 0.00001, 0.0001, 0.001, 0.01]
@@ -36,7 +28,14 @@ bins = [x/(1*10**8) for x in range(100)] #range(n) gives n nanoseconds
 #     
 # #sort all list elements to be used in histogram
 # bins = sorted(last_bins)
-# =============================================================================                
+# =============================================================================                   
+
+data = []
+with open('Timings.txt') as file:
+    for row in file:
+        data.append(float(row))
+        
+counts, times, patches = plt.hist(data, bins)
 
 ###DEFINITIONS###
 
@@ -50,9 +49,9 @@ def uPulserate(box):
     error = np.sqrt(counts[box])/(sum(counts)*(times[box+1]-times[box]))
     return(error)
 
-# average # of pulses occuring in box = lambda in paper
+# average # of pulses occuring in box = lambda in paper?
 def lamb(box):
-  #  prob = pulserate(box)*(times[box+1]-times[box])
+  #  prob = pulserate(box)*(times[box+1]-times[box]) #equiv to below
     prob = counts[box]/(sum(counts))
     return(prob)
     
@@ -66,7 +65,7 @@ def uLamb(box):
                     /(np.exp(-1*beta(box-1)) - pulseProbability(box-1))
     return(error)
 
-# Beta is average # pulses happening before time
+# Beta is average # pulses happening before time ***box
 def beta(box):
     rsf = 0 
     if box == 0:
@@ -86,7 +85,7 @@ def uBeta(box):
                     /(np.exp(-1*beta(box-1)) - pulseProbability(box-1))
     return(error)
 
-# Lambda is average # of pulses occuring in time frame
+# Lambda is average # of pulses occuring in time frame ***box-box+1
 def pulseProbability(box):
     prob = np.exp(-1*beta(box))*(1 - np.exp(-1*lamb(box)))
     return(prob)
@@ -132,7 +131,7 @@ plt.xlabel('Time (sec)')
 plt.title('Pulserate vs. Time')
 plt.yscale('log')
 plt.xscale('log')
-plt.errorbar(bins[0:-1], [pulserate(x) for x in range(len(bins)-1)],
+plt.errorbar(bins[0:-1], [pulserate(x) for x in range(len(bins)-1)], 
              yerr=pulserate_uncertainties)
 plt.show()
     
