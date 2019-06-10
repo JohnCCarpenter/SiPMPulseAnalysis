@@ -3,32 +3,8 @@ import numpy as np
 
 ###MAIN DATA AND CONSTANTS###
 
-bins = [x/(1*10**8) for x in range(1000000)] #range(n) gives n*10 nanoseconds
-#bins = 10
-#bins = [x/(1*10**9) for x in range(1, 10000000, 10000)] #this allows for larger range?
-        
-#This next section is to create a list of 1e-9 to 1e-2 in steps of 1e-9
-# =============================================================================
-# #DOESN'T WORK BECAUSE THE BIN SIZES GET LARGER AT EVERY ORDER OF MAGNITUDE
-# start_bins = [0.0000000001, 0.000000001, 0.00000001, 0.0000001, 
-#               0.000001, 0.00001, 0.0001, 0.001, 0.01]
-# 
-# #returns list multiplied by a number(n)
-# def stepBin(n):
-#     next_bins = [x*n for x in start_bins]
-#     return(next_bins)
-#     
-# #create a list of lists, each a multiple of start_bins
-# next_bins = [stepBin(x) for x in range(1, 10)]
-# 
-# #combine all list elements into single list
-# last_bins = []
-# for x in next_bins:
-#     last_bins += x 
-#     
-# #sort all list elements to be used in histogram
-# bins = sorted(last_bins)
-# =============================================================================                   
+bins = np.logspace(-9, -1, 100)
+#bins = [5*x/(1*10**4) for x in range(75)] #range(n) gives n*10 nanoseconds
 
 data = []
 with open('Timings.txt') as file:
@@ -37,7 +13,7 @@ with open('Timings.txt') as file:
         
 counts, times, patches = plt.hist(data, bins)
 
-###DEFINITIONS###
+###FUNCTIONS###
 
 # pulserate = pi in paper 
 def pulserate(box):
